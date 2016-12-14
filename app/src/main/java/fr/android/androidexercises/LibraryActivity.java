@@ -7,6 +7,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import java.util.List;
+
+import retrofit.Call;
+import retrofit.Callback;
+import retrofit.GsonConverterFactory;
+import retrofit.Response;
+import retrofit.Retrofit;
+import timber.log.Timber;
+
 public class LibraryActivity extends AppCompatActivity {
 
     @Override
@@ -18,7 +27,31 @@ public class LibraryActivity extends AppCompatActivity {
         TextView messageTextView = (TextView) findViewById(R.id.messageTextView);
         // TODO call setText() on messageTextView
 
+        Timber.plant(new Timber.DebugTree());
+
         setSupportActionBar(toolbar);
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://henri-potier.xebia.fr/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        BookService bookService = retrofit.create(BookService.class);
+        Call<List<Book>> call = bookService.listBooks();
+        call.enqueue(new Callback<List<Book>>() {
+            @Override
+            public void onResponse(Response<List<Book>> response, Retrofit retrofit) {
+                for (Book book: response.body()
+                     ) {
+                    Timber.i(book.getTitle());
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Timber.i("fail");
+
+            }
+        });
     }
 
     @Override
@@ -42,4 +75,6 @@ public class LibraryActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+
 }
